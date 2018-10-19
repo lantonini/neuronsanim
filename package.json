@@ -1,0 +1,19 @@
+{
+  "name": "neuronsanim",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lantonini/neuronsanim.git"
+  },
+  "author": "Louis Antonini",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lantonini/neuronsanim/issues"
+  },
+  "homepage": "https://github.com/lantonini/neuronsanim#readme"
+}
