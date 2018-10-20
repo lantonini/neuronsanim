@@ -1,5 +1,6 @@
 {
   "fjord": {
+    "image": "assets/img/fjord.jpg",
     "graph": {
       "nodes": [
         { "id": "a" },
