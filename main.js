@@ -1,25 +1,7 @@
-/*
-** Returns an array of selected DOM elements.
-*/
+import { Start } from './neuronsanim';
 
-function getElementsByAttribute(attrib) {
-  return document.querySelectorAll("[" + attrib + "]");
+function main() {
+  start();
 }
 
-/*
-** Returns an array of all DOM elements with neuronsanim attribute.
-*/
-
-function getNeuronsanimElements() {
-  return getElementsByAttribute('neuronsanim');
-}
-
-/*
-** Start neuronsanim.
-*/
-
-function neuronsanim() {
-  var ne = getNeuronsanimElements();
-}
-
-neuronsanim();
+export default main;
