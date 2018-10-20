@@ -1,4 +1,7 @@
-import { Graph } from 'graph-data-structure'
+var Graph = require('graph-data-structure')
+
+// Load configuration
+var config = require('./config.json')
 
 /*
 ** Returns an array of selected DOM elements.
@@ -21,6 +24,13 @@ function getNeuronsanimImgs() {
 */
 
 function initImageEffects(element) {
+  var elementGraph = Graph();
+  var graphName = element.getAttribute("name");
+  var graphConf = config[graphName];
+
+  // Deserialize graph structure from configuration
+  elementGraph.deserialize(graphConf.graph);
+  console.log(elementGraph.nodes())
 }
 
 /*
