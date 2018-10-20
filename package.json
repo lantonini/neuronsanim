@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "lib/neuronsanim.min.js",
-  "module": "lib/neuronsanim.min.js",
   "scripts": {
     "build": "webpack --config webpack.config.js"
   },

@@ -21,7 +21,6 @@ function getNeuronsanimImgs() {
 */
 
 function initImageEffects(element) {
-
 }
 
 /*
@@ -33,3 +32,5 @@ export function start() {
 
   ne.forEach(initImageEffects);
 }
+
+start()
