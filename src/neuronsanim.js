@@ -1,6 +1,5 @@
+var PIXI = require("pixi.js")
 var Graph = require('graph-data-structure')
-
-// Load configuration
 var config = require('./config.json')
 
 /*
@@ -23,25 +22,19 @@ function initNeuronsanimElementsEffects(element) {
   // Deserialize graph structure from configuration
   elementGraph.deserialize(graphConf.graph);
 
-  // Create HTML5 canvas
-  var canvas = document.createElement("canvas")
-  var ctx = canvas.getContext("2d");
+  var app = new PIXI.Application(800, 600);
+  document.body.appendChild(app.view);
 
-  // Add a canvas of the same dimensions of element
-  canvas.setAttribute("width", "640")
-  canvas.setAttribute("height", "480")
-  document.body.appendChild(canvas)
+  // create a new Sprite from an image path
+  var bunny = PIXI.Sprite.fromImage(graphConf["image"]);
 
-  if (!ctx) {
-    console.log("Ctx context not accessible.")
-    return;
-  }
+  // center the sprite's anchor point
+  bunny.anchor.set(0.5);
+  // move the sprite to the center of the screen
+  bunny.x = app.screen.width / 2;
+  bunny.y = app.screen.height / 2;
 
-  let image = new Image();
-  image.src = graphConf["image"];
-  image.addEventListener("load", () => {
-    ctx.drawImage(image, 0, 0);
-  });
+  app.stage.addChild(bunny);
 }
 
 /*

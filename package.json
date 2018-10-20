@@ -2,7 +2,6 @@
   "name": "neuronsanim",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/neuronsanim.min.js",
   "scripts": {
     "build": "webpack --config webpack.config.js"
   },
@@ -22,6 +21,7 @@
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
-    "graph-data-structure": "^1.8.0"
+    "graph-data-structure": "^1.8.0",
+    "pixi.js": "^4.8.2"
   }
 }
