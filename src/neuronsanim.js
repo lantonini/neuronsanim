@@ -70,7 +70,7 @@ function drawNodes(element, graphics) {
   var graphConf = getGraphConf(element);
   var graphCoord = graphConf["nodeCoordinates"];
 
-  // Deserialize graph structure from configuration
+  // Deserialize graph structure from configuration.
   elementGraph.deserialize(graphConf.graph);
 
   elementGraph.nodes().forEach((id) => {
@@ -100,12 +100,16 @@ function initNeuronsanimElementsView(element) {
   });
   document.body.appendChild(app.view);
 
-  // Add background
+  // Add background.
   var bg = PIXI.Sprite.fromImage(graphConf["image"]);
+  var filter = new PIXI.filters.ColorMatrixFilter();
   bg.anchor.set(0.5);
   bg.x = app.screen.width / 2;
   bg.y = app.screen.height / 2;
+
   app.stage.addChild(bg);
+  app.stage.filters = [filter];
+  filter.desaturate();
 
   var graphics = new PIXI.Graphics();
   drawEdges(element, graphics);
