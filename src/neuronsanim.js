@@ -1,8 +1,6 @@
 var Graph = require('graph-data-structure')
 var config = require('./config.json')
 
-PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH
-
 /*
 ** Returns an array of all DOM neuronsanim elements.
 */
@@ -55,7 +53,7 @@ function drawEdges(element, app) {
   var graphEdges = getGraphEdges(element);
   var graphics = new PIXI.Graphics();
 
-  graphics.lineStyle(1, 0x000000);
+  graphics.lineStyle(2, 0xFFFFFF, 0.75);
   graphEdges.forEach((link) => {
     let src = graphCoord[link["source"]];
     let target = graphCoord[link["target"]];
@@ -66,28 +64,68 @@ function drawEdges(element, app) {
 }
 
 /*
+** Draw pulsing edges.
+*/
+
+function drawPulsingEdges(node, element, app) {
+  var graphCoord = getGraphNodesCoord(element);
+  var graphEdges = getGraphEdges(element);
+  var graphics = new PIXI.Graphics();
+  var pulseFilter = new PIXI.filters.GlowFilter(2, 4, 2, 0xFFFFFF, 1);
+
+  graphics.lineStyle(2, 0xFFFFFF);
+  graphEdges.forEach((link) => {
+    let src = graphCoord[link["source"]];
+    let target = graphCoord[link["target"]];
+    graphics.moveTo(src.x, src.y);
+    graphics.lineTo(target.x, target.y);
+  });
+
+  // Create container for pulsing animation.
+  var pulsingEdgesContainer = new PIXI.Container();
+  pulsingEdgesContainer.addChild(graphics);
+  app.stage.addChild(pulsingEdgesContainer);
+
+  // // Create mask for pulsing animation.
+  // var renderTexture = PIXI.RenderTexture.create(app.screen.width,
+  //                                               app.screen.height);
+  // var renderTextureSprite = new PIXI.Sprite(renderTexture);
+  // app.stage.addChild(renderTextureSprite);
+  //
+  // // Mask the pulsing animation container with renderTextureSprite.
+  // pulsingEdgesContainer.mask = renderTextureSprite;
+
+  var brush = new PIXI.Graphics();
+  pulsingEdgesContainer.mask = brush;
+
+  var radius = 0;
+  var count = 0;
+  app.ticker.add(function() {
+    // Increase/Decrease mask radius.
+    radius = 1000 * (1 + Math.sin(Math.PI * count));
+    count += 1/120;
+
+    brush.clear();
+    brush.beginFill();
+    brush.drawCircle(node.position.x, node.position.y, radius);
+    brush.endFill();
+    // app.renderer.render(brush, renderTexture, false, null, false);
+  });
+}
+
+/*
 ** Generate texture.
 */
 
-function nodeCanvasTexture(size = 5) {
+function nodeCanvasTexture(size = 2) {
   var g = new PIXI.Graphics()
 
-  g.boundsPadding = size * 2;
-  g.beginFill(0x000000, 1);
+  g.boundsPadding = 10;
+  g.beginFill(0xFFFFFF, 1);
   g.drawCircle(0, 0, size);
   g.endFill();
 
   return g.generateCanvasTexture();
-}
-
-/*
-** Add pulse glow to given node edges.
-*/
-
-function nodePulse(node, app) {
-  // Create a ring filter mask.
-  // Add filter starting from node position.
-  console.log(node);
 }
 
 /*
@@ -120,7 +158,7 @@ function drawNodes(element, app) {
   var count = 0;
   app.ticker.add(function() {
     // distance € [5;8]
-    glowFilter.distance = 6.5 + Math.sin(Math.PI * count) * 1.5;
+    glowFilter.distance = 7 + Math.sin(Math.PI * count) * 2;
     // Add π per 4 seconds
     count += 1/240;
   });
@@ -162,16 +200,18 @@ function initNeuronsanimElementsView(element) {
 
   // Initialize graph viewport.
   var app = new PIXI.Application({
-    "width": element.getAttribute("width"),
-    "height": element.getAttribute("height"),
-    "antialias": true
+    width: element.getAttribute("width"),
+    height: element.getAttribute("height"),
+    antialias: true,
+    transparent: true
   });
 
   drawBg(app, graphConf["image"]);
   drawEdges(element, app);
+
   let nodesIndex = drawNodes(element, app);
   let pulsingNode = app.stage.getChildAt(nodesIndex[0]);
-  nodePulse(pulsingNode, app);
+  drawPulsingEdges(pulsingNode, element, app);
 
   document.body.appendChild(app.view);
 }
