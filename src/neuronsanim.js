@@ -1,6 +1,8 @@
 var Graph = require('graph-data-structure')
 var config = require('./config.json')
 
+PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH
+
 /*
 ** Returns an array of all DOM neuronsanim elements.
 */
@@ -48,38 +50,90 @@ function getGraphEdges(element) {
 ** Draw graph edges.
 */
 
-function drawEdges(element, graphics) {
+function drawEdges(element, app) {
   var graphCoord = getGraphNodesCoord(element);
   var graphEdges = getGraphEdges(element);
+  var graphics = new PIXI.Graphics();
 
-  graphics.lineStyle(2);
+  graphics.lineStyle(1, 0xFFA500);
   graphEdges.forEach((link) => {
     let src = graphCoord[link["source"]];
     let target = graphCoord[link["target"]];
     graphics.moveTo(src.x, src.y);
     graphics.lineTo(target.x, target.y);
   });
+  app.stage.addChild(graphics);
+}
+
+/*
+** Generate texture.
+*/
+
+function nodeCanvasTexture(size = 5) {
+  var g = new PIXI.Graphics()
+
+  g.boundsPadding = size * 2;
+  g.beginFill(0x000000, 1);
+  g.drawCircle(0, 0, size);
+  g.endFill();
+
+  return g.generateCanvasTexture();
 }
 
 /*
 ** Draw graph nodes.
 */
 
-function drawNodes(element, graphics) {
+function drawNodes(element, app) {
   var elementGraph = Graph();
   var graphConf = getGraphConf(element);
   var graphCoord = graphConf["nodeCoordinates"];
+  var glowFilter = new PIXI.filters.GlowFilter(7, 4, 2, 0xFFA500, 1);
 
   // Deserialize graph structure from configuration.
+  let texture = nodeCanvasTexture();
   elementGraph.deserialize(graphConf.graph);
-
   elementGraph.nodes().forEach((id) => {
     let n = graphCoord[id]
+    var nodeSprite = new PIXI.Sprite(texture)
 
-    graphics.beginFill();
-    graphics.drawCircle(n.x, n.y, 10);
-    graphics.endFill();
+    nodeSprite.position.x = n.x
+    nodeSprite.position.y = n.y
+    nodeSprite.anchor.x = 0.5
+    nodeSprite.anchor.y = 0.5
+    nodeSprite.filters = [glowFilter];
+    app.stage.addChild(nodeSprite);
   });
+
+  var count = 0;
+  app.ticker.add(function() {
+    // distance € [5;8]
+    glowFilter.distance = 6.5 + Math.sin(Math.PI * count) * 1.5;
+    // Add π per 4 seconds
+    count += 1/240;
+  });
+}
+
+/*
+** Add a positioning tool to get mouse coordinates.
+*/
+
+/*
+** Draw background.
+*/
+
+function drawBg(app, bg) {
+  var bgContainer = new PIXI.Container();
+  var bg = new PIXI.Sprite.fromImage(bg);
+  var filter = new PIXI.filters.ColorMatrixFilter();
+
+  bg.anchor.set(0.5);
+  bg.x = app.screen.width / 2;
+  bg.y = app.screen.height / 2;
+  bgContainer.addChild(bg);
+  bgContainer.filters = [filter];
+  filter.desaturate();
+  app.stage.addChild(bgContainer);
 }
 
 /*
@@ -98,23 +152,12 @@ function initNeuronsanimElementsView(element) {
     "height": element.getAttribute("height"),
     "antialias": true
   });
+
+  drawBg(app, graphConf["image"]);
+  drawEdges(element, app);
+  drawNodes(element, app);
+
   document.body.appendChild(app.view);
-
-  // Add background.
-  var bg = PIXI.Sprite.fromImage(graphConf["image"]);
-  var filter = new PIXI.filters.ColorMatrixFilter();
-  bg.anchor.set(0.5);
-  bg.x = app.screen.width / 2;
-  bg.y = app.screen.height / 2;
-
-  app.stage.addChild(bg);
-  app.stage.filters = [filter];
-  filter.desaturate();
-
-  var graphics = new PIXI.Graphics();
-  drawEdges(element, graphics);
-  drawNodes(element, graphics);
-  app.stage.addChild(graphics);
 }
 
 /*
