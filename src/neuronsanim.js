@@ -55,7 +55,7 @@ function drawEdges(element, app) {
   var graphEdges = getGraphEdges(element);
   var graphics = new PIXI.Graphics();
 
-  graphics.lineStyle(1, 0xFFA500);
+  graphics.lineStyle(1, 0x000000);
   graphEdges.forEach((link) => {
     let src = graphCoord[link["source"]];
     let target = graphCoord[link["target"]];
@@ -81,6 +81,16 @@ function nodeCanvasTexture(size = 5) {
 }
 
 /*
+** Add pulse glow to given node edges.
+*/
+
+function nodePulse(node, app) {
+  // Create a ring filter mask.
+  // Add filter starting from node position.
+  console.log(node);
+}
+
+/*
 ** Draw graph nodes.
 */
 
@@ -89,6 +99,7 @@ function drawNodes(element, app) {
   var graphConf = getGraphConf(element);
   var graphCoord = graphConf["nodeCoordinates"];
   var glowFilter = new PIXI.filters.GlowFilter(7, 4, 2, 0xFFA500, 1);
+  var nodesIndex = [];
 
   // Deserialize graph structure from configuration.
   let texture = nodeCanvasTexture();
@@ -103,6 +114,7 @@ function drawNodes(element, app) {
     nodeSprite.anchor.y = 0.5
     nodeSprite.filters = [glowFilter];
     app.stage.addChild(nodeSprite);
+    nodesIndex.push(app.stage.getChildIndex(nodeSprite));
   });
 
   var count = 0;
@@ -112,6 +124,8 @@ function drawNodes(element, app) {
     // Add π per 4 seconds
     count += 1/240;
   });
+
+  return nodesIndex;
 }
 
 /*
@@ -155,7 +169,9 @@ function initNeuronsanimElementsView(element) {
 
   drawBg(app, graphConf["image"]);
   drawEdges(element, app);
-  drawNodes(element, app);
+  let nodesIndex = drawNodes(element, app);
+  let pulsingNode = app.stage.getChildAt(nodesIndex[0]);
+  nodePulse(pulsingNode, app);
 
   document.body.appendChild(app.view);
 }
