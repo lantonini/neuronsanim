@@ -1,5 +1,26 @@
 var Graph = require('graph-data-structure')
-var config = require('./config.json')
+// var config = require('./default_config.json')
+
+/*
+** TODO : Responsiveness
+** TODO : First pictures
+** TODO : Documentation for Greg
+** TODO : Second glow
+*/
+
+function loadJSON(jsonFile, callback) {
+  var xobj = new XMLHttpRequest();
+      xobj.overrideMimeType("application/json");
+
+  xobj.open('GET', jsonFile, true);
+  xobj.onreadystatechange = function () {
+    if (xobj.readyState == 4 && xobj.status == "200") {
+      var actual_JSON = JSON.parse(xobj.responseText);
+      callback(actual_JSON);
+    }
+  };
+  xobj.send(null);
+}
 
 /*
 ** Returns an array of all DOM neuronsanim elements.
@@ -48,32 +69,62 @@ function getGraphEdges(element) {
 ** Draw graph edges.
 */
 
+var edgesIndex = [];
+
 function drawEdges(element, app) {
   var graphCoord = getGraphNodesCoord(element);
   var graphEdges = getGraphEdges(element);
   var graphics = new PIXI.Graphics();
 
-  graphics.lineStyle(2, 0xFFFFFF, 0.75);
+  graphics.lineStyle(1, 0xFFFFFF, 1);
   graphEdges.forEach((link) => {
     let src = graphCoord[link["source"]];
     let target = graphCoord[link["target"]];
     graphics.moveTo(src.x, src.y);
     graphics.lineTo(target.x, target.y);
   });
-  app.stage.addChild(graphics);
+  addEdge(graphics, app);
+}
+
+/*
+** Add graph edges.
+*/
+
+function addEdge(edge, app) {
+  app.stage.addChild(edge);
+  edgesIndex.push(app.stage.getChildIndex(edge));
+}
+
+/*
+** Remove graph edges.
+*/
+
+function removeEdge(id) {
+
+}
+
+/*
+** Clear graph edges.
+*/
+
+function clearEdges() {
+
 }
 
 /*
 ** Draw pulsing edges.
 */
 
-function drawPulsingEdges(node, element, app) {
+var pulsingEdgesIndex = [];
+
+function drawPulsingEdges(element, app) {
   var graphCoord = getGraphNodesCoord(element);
   var graphEdges = getGraphEdges(element);
   var graphics = new PIXI.Graphics();
   var pulseFilter = new PIXI.filters.GlowFilter(2, 4, 2, 0xFFFFFF, 1);
+  var node = app.stage.getChildAt(nodesIndex[0]);
 
-  graphics.lineStyle(2, 0xFFFFFF);
+  graphics.lineStyle(1, 0xFFFFFF, 1);
   graphEdges.forEach((link) => {
     let src = graphCoord[link["source"]];
     let target = graphCoord[link["target"]];
@@ -84,7 +135,7 @@ function drawPulsingEdges(node, element, app) {
   // Create container for pulsing animation.
   var pulsingEdgesContainer = new PIXI.Container();
   pulsingEdgesContainer.addChild(graphics);
-  app.stage.addChild(pulsingEdgesContainer);
+  addPulsingEdge(pulsingEdgesContainer, app);
 
   // // Create mask for pulsing animation.
   // var renderTexture = PIXI.RenderTexture.create(app.screen.width,
@@ -102,8 +153,8 @@ function drawPulsingEdges(node, element, app) {
   var count = 0;
   app.ticker.add(function() {
     // Increase/Decrease mask radius.
-    radius = 1000 * (1 + Math.sin(Math.PI * count));
-    count += 1/120;
+    radius = 500 * (1 + Math.sin(Math.PI * count));
+    count += 1/60;
 
     brush.clear();
     brush.beginFill();
@@ -114,16 +165,44 @@ function drawPulsingEdges(node, element, app) {
 }
 
 /*
+** Add graph pulsingEdges.
+*/
+
+function addPulsingEdge(pulsingEdge, app) {
+  app.stage.addChild(pulsingEdge);
+  pulsingEdgesIndex.push(app.stage.getChildIndex(pulsingEdge));
+}
+
+/*
+** Remove graph pulsingEdges.
+*/
+
+function removePulsingEdge(id) {
+
+}
+
+/*
+** Clear graph pulsingEdges.
+*/
+
+function clearPulsingEdges() {
+
+}
+/*
 ** Generate texture.
 */
 
-function nodeCanvasTexture(size = 2) {
+var USE_NODES = true;
+
+function nodeCanvasTexture() {
   var g = new PIXI.Graphics()
 
-  g.boundsPadding = 10;
-  g.beginFill(0xFFFFFF, 1);
-  g.drawCircle(0, 0, size);
-  g.endFill();
+  if (USE_NODES) {
+    g.boundsPadding = 10;
+    g.beginFill(0xFFFFFF, 1);
+    g.drawCircle(0, 0, 1);
+    g.endFill();
+  }
 
   return g.generateCanvasTexture();
 }
@@ -132,12 +211,13 @@ function nodeCanvasTexture(size = 2) {
 ** Draw graph nodes.
 */
 
+var nodesIndex = [];
+
 function drawNodes(element, app) {
   var elementGraph = Graph();
   var graphConf = getGraphConf(element);
   var graphCoord = graphConf["nodeCoordinates"];
-  var glowFilter = new PIXI.filters.GlowFilter(7, 4, 2, 0xFFA500, 1);
-  var nodesIndex = [];
+  // var glowFilter = new PIXI.filters.GlowFilter(7, 4, 2, 0xFFA500, 1);
 
   // Deserialize graph structure from configuration.
   let texture = nodeCanvasTexture();
@@ -150,31 +230,91 @@ function drawNodes(element, app) {
     nodeSprite.position.y = n.y
     nodeSprite.anchor.x = 0.5
     nodeSprite.anchor.y = 0.5
-    nodeSprite.filters = [glowFilter];
-    app.stage.addChild(nodeSprite);
-    nodesIndex.push(app.stage.getChildIndex(nodeSprite));
+    // nodeSprite.filters = [glowFilter];
+    addNode(nodeSprite, app)
   });
 
-  var count = 0;
-  app.ticker.add(function() {
-    // distance € [5;8]
-    glowFilter.distance = 7 + Math.sin(Math.PI * count) * 2;
-    // Add π per 4 seconds
-    count += 1/240;
-  });
+  // var count = 0;
+  // app.ticker.add(function() {
+  //   // distance € [5;8]
+  //   glowFilter.distance = 7 + Math.sin(Math.PI * count) * 2;
+  //   // Add π per 4 seconds
+  //   count += 1/240;
+  // });
+}
 
-  return nodesIndex;
+/*
+** Add graph node.
+*/
+
+function addNode(node, app) {
+  app.stage.addChild(node);
+  nodesIndex.push(app.stage.getChildIndex(node));
+}
+
+/*
+** Remove graph node and all its edges.
+*/
+
+function removeNode(id) {
+
+}
+
+/*
+** Clear graph nodes and all edges.
+*/
+
+function clearNodes() {
+
 }
 
 /*
 ** Add a positioning tool to get mouse coordinates.
 */
 
+function interactiveGraphBuilder(app) {
+  var NODE_MODE = 0, EDGE_MODE = 1;
+  var mode = NODE_MODE;
+  var bg = app.stage.getChildAt(bgIndex);
+
+  bg.interactive = true;
+
+  // Node mode: click on stage adds a node to config.json.
+  bg.on('click', () => {
+    mode = NODE_MODE;
+    var mouseposition = app.renderer.plugins.interaction.mouse.global;
+    console.log(mode);
+    console.log(mouseposition);
+  });
+
+  bg.on('rightclick', () => {
+    mode = NODE_MODE;
+    var mouseposition = app.renderer.plugins.interaction.mouse.global;
+    console.log(mode);
+  });
+
+  // Edge mode: click on node1 + node 2 adds an edge to config.json.
+  nodesIndex.forEach((id) => {
+    var node = app.stage.getChildAt(id);
+    node.interactive = true;
+    node.on('click', () => {
+      mode = EDGE_MODE;
+      console.log(mode);
+    });
+  });
+
+  // Interactive GraphBuilder will build a json and log.
+  // Adding a node : use addNodes
+  // Removing a node : use removeNodes
+}
+
 /*
 ** Draw background.
 */
 
-function drawBg(app, bg) {
+var bgIndex = null;
+
+function drawBg(bg, app) {
   var bgContainer = new PIXI.Container();
   var bg = new PIXI.Sprite.fromImage(bg);
   var filter = new PIXI.filters.ColorMatrixFilter();
@@ -186,6 +326,8 @@ function drawBg(app, bg) {
   bgContainer.filters = [filter];
   filter.desaturate();
   app.stage.addChild(bgContainer);
+
+  bgIndex = app.stage.getChildIndex(bgContainer);
 }
 
 /*
@@ -202,16 +344,15 @@ function initNeuronsanimElementsView(element) {
   var app = new PIXI.Application({
     width: element.getAttribute("width"),
     height: element.getAttribute("height"),
-    antialias: true,
-    transparent: true
+    antialias: true
+    // transparent: true
   });
 
-  drawBg(app, graphConf["image"]);
+  drawBg(graphConf["image"], app);
+  drawNodes(element, app);
   drawEdges(element, app);
-
-  let nodesIndex = drawNodes(element, app);
-  let pulsingNode = app.stage.getChildAt(nodesIndex[0]);
-  drawPulsingEdges(pulsingNode, element, app);
+  drawPulsingEdges(element, app);
+  interactiveGraphBuilder(app);
 
   document.body.appendChild(app.view);
 }
@@ -220,10 +361,15 @@ function initNeuronsanimElementsView(element) {
 ** Start neuronsanim.
 */
 
-export function start() {
+var config = null;
+
+export function start(cName = "default_config.json") {
   var imgs = getNeuronsanimElements();
 
-  imgs.forEach(initNeuronsanimElementsView);
+  loadJSON("src/" + cName, (c) => {
+    config = c;
+    imgs.forEach(initNeuronsanimElementsView);
+  })
 }
 
 start()
